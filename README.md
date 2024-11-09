@@ -31,3 +31,25 @@ Press 'h' to decrement position of ID 6.
 Press 'x' to exit the program and kill key_control_node
 
 All other files other than key_control_node.cpp are from https://github.com/ROBOTIS-GIT/DynamixelSDK/blob/humble-devel/.gitattributes
+
+Steps to run on Jetson
+
+Open 2 terminals
+```
+cd Desktop/ros_ws_dynamixel
+```
+```
+source install/setup.bash
+```
+First terminal
+```
+ros2 run dynamixel_sdk_examples read_write_node
+```
+Second terminal (2 options: Publish ID & Position to topic (Position Range: 0-4000) or Using Key Press to control each motor)
+```
+ros2 topic pub  -1 /set_position dynamixel_sdk_custom_interfaces/SetPosition "{id: 1, position: 1000}"
+```
+```
+ros2 run dynamixel_sdk_examples key_control_node
+```
+
