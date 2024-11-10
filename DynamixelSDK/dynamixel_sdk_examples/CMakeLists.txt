@@ -29,6 +29,13 @@ ament_target_dependencies(read_write_node
   rclcpp
 )
 
+add_executable(read_write_node src/command_node.cpp)
+ament_target_dependencies(command_node
+  dynamixel_sdk_custom_interfaces
+  dynamixel_sdk
+  rclcpp
+)
+
 add_executable(key_control_node src/key_control_node.cpp)
 ament_target_dependencies(key_control_node
   dynamixel_sdk_custom_interfaces
@@ -38,10 +45,13 @@ ament_target_dependencies(key_control_node
 
 target_link_libraries(key_control_node ${NCURSES_LIBRARIES})
 
+target_link_libraries(command_node ${NCURSES_LIBRARIES})
+
 # Install
 install(TARGETS
   read_write_node
   key_control_node
+  command_node
   DESTINATION lib/${PROJECT_NAME}
 )
 

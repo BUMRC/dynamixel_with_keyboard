@@ -8,30 +8,14 @@
 
 using namespace std::chrono_literals;
 
-class KeyControlNode : public rclcpp::Node
-{
+class KeyControlNode : public rclcpp::Node{
+
 public:
     KeyControlNode()
-        : Node("key_control_node"), id_1_position(0), id_2_position(0), id_3_position(0), id_4_position(0), id_5_position(0), id_6_position(0)
-    {
+    : Node("key_control_node"), id_1_position(0), id_2_position(0), id_3_position(0), id_4_position(0){
+        
         // Initialize the publisher for the set_position topic
         this_publisher = this->create_publisher<dynamixel_sdk_custom_interfaces::msg::SetPosition>("set_position", 10);
-        
-         // Print instructions to the user
-        RCLCPP_INFO(this->get_logger(), "Keyboard Control Instructions:");
-        RCLCPP_INFO(this->get_logger(), "Press 'q' to increment position of ID 1.");
-        RCLCPP_INFO(this->get_logger(), "Press 'a' to decrement position of ID 1.");
-        RCLCPP_INFO(this->get_logger(), "Press 'w' to increment position of ID 2.");
-        RCLCPP_INFO(this->get_logger(), "Press 's' to decrement position of ID 2.");
-        RCLCPP_INFO(this->get_logger(), "Press 'e' to increment position of ID 3.");
-        RCLCPP_INFO(this->get_logger(), "Press 'd' to decrement position of ID 3.");
-        RCLCPP_INFO(this->get_logger(), "Press 'r' to increment position of ID 4.");
-        RCLCPP_INFO(this->get_logger(), "Press 'f' to decrement position of ID 4.");
-        RCLCPP_INFO(this->get_logger(), "Press 't' to increment position of ID 5.");
-        RCLCPP_INFO(this->get_logger(), "Press 'g' to decrement position of ID 5.");
-        RCLCPP_INFO(this->get_logger(), "Press 'y' to increment position of ID 6.");
-        RCLCPP_INFO(this->get_logger(), "Press 'h' to decrement position of ID 6.");
-        RCLCPP_INFO(this->get_logger(), "Press 'x' to exit the program.");
         
         // Initialize ncurses
         initscr();              // Initialize ncurses
@@ -40,19 +24,17 @@ public:
         noecho();               // Don't display keypresses
         
         // Reset motors to position 0 at startup
-        for(int i=1;i<7;i++){
+        for(int i=1;i<5;i++){
         	resetMotorPosition(i, 0);
         }
         
         // Start a thread for reading keyboard input
-        keyboard_thread_ = std::make_shared<std::thread>(&KeyControlNode::readKeyboard, this);
+        keyboard_thread = std::make_shared<std::thread>(&KeyControlNode::readKeyboard, this);
     }
 
-    ~KeyControlNode()
-    {
-        if (keyboard_thread_ && keyboard_thread_->joinable())
-        {
-            keyboard_thread_->join();
+    ~KeyControlNode(){
+        if (keyboard_thread && keyboard_thread->joinable()){
+            keyboard_thread->join();
         }
         
         // Clean up ncurses
@@ -61,13 +43,11 @@ public:
 
 private:
     rclcpp::Publisher<dynamixel_sdk_custom_interfaces::msg::SetPosition>::SharedPtr this_publisher;
-    std::shared_ptr<std::thread> keyboard_thread_;
+    std::shared_ptr<std::thread> keyboard_thread;
     int id_1_position;
     int id_2_position;
     int id_3_position;
     int id_4_position;
-    int id_5_position;
-    int id_6_position;
     
     void resetMotorPosition(int id, int position){
         auto message = dynamixel_sdk_custom_interfaces::msg::SetPosition();
@@ -79,6 +59,19 @@ private:
     }
 
     void readKeyboard(){
+
+        // Print instructions to the user
+        RCLCPP_INFO(this->get_logger(), "Keyboard Control Instructions:");
+        RCLCPP_INFO(this->get_logger(), "Press 'q' to increment position of ID 1.");
+        RCLCPP_INFO(this->get_logger(), "Press 'a' to decrement position of ID 1.");
+        RCLCPP_INFO(this->get_logger(), "Press 'w' to increment position of ID 2.");
+        RCLCPP_INFO(this->get_logger(), "Press 's' to decrement position of ID 2.");
+        RCLCPP_INFO(this->get_logger(), "Press 'e' to increment position of ID 3.");
+        RCLCPP_INFO(this->get_logger(), "Press 'd' to decrement position of ID 3.");
+        RCLCPP_INFO(this->get_logger(), "Press 'r' to increment position of ID 4.");
+        RCLCPP_INFO(this->get_logger(), "Press 'f' to decrement position of ID 4.");
+        RCLCPP_INFO(this->get_logger(), "Press 'x' to exit the program.");
+
         while (rclcpp::ok()){
         
             int ch = getch();  // Get the pressed key (non-blocking)
@@ -159,50 +152,12 @@ private:
                 publishPosition(4, id_4_position);
             }
             
-            // Control for ID 5
-            else if (ch == 't'){  // Increment ID 5 position
-            
-                id_5_position += 400;
-                if (id_5_position > 4000){
-                    id_5_position = 4000;
-                }
-                RCLCPP_INFO(this->get_logger(), "ID 5 Incremented to position: %d", id_5_position);
-                publishPosition(5, id_5_position);
-            }else if (ch == 'g'){  // Decrement ID 5 position
-
-                id_5_position -= 400;
-                if (id_5_position < 0){
-                    id_5_position = 0;
-                }
-                RCLCPP_INFO(this->get_logger(), "ID 5 Decremented to position: %d", id_5_position);
-                publishPosition(5, id_5_position);
-            }
-            
-            // Control for ID 6
-            else if (ch == 'y'){  // Increment ID 6 position
-            
-                id_6_position += 400;
-                if (id_6_position > 4000){
-                    id_6_position = 4000;
-                }
-                RCLCPP_INFO(this->get_logger(), "ID 6 Incremented to position: %d", id_6_position);
-                publishPosition(6, id_6_position);
-            }else if (ch == 'h'){  // Decrement ID 6 position
-
-                id_6_position -= 400;
-                if (id_6_position < 0){
-                    id_6_position = 0;
-                }
-                RCLCPP_INFO(this->get_logger(), "ID 6 Decremented to position: %d", id_6_position);
-                publishPosition(6, id_6_position);
-            }
-
             // Quit the program when 'x' is pressed
             if (ch == 'x') {
-		RCLCPP_INFO(this->get_logger(), "Shutting down the node.");
-		rclcpp::shutdown();  // Gracefully shut down the ROS 2 node
-		break;  // Exit the loop
-	    }
+                RCLCPP_INFO(this->get_logger(), "Shutting down the node.");
+                rclcpp::shutdown();  // Gracefully shut down the ROS 2 node
+                break;  // Exit the loop
+            }
 
             std::this_thread::sleep_for(100ms);  // To avoid high CPU usage
         }
@@ -220,8 +175,9 @@ private:
 int main(int argc, char * argv[])
 {
     rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<KeyControlNode>());
+    auto keycontrolnode = std::make_shared<KeyControlNode>();
+
+    rclcpp::spin(keycontrolnode);
     rclcpp::shutdown();
     return 0;
 }
-
